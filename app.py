@@ -1,10 +1,11 @@
 """
 app.py
 Pharmacy Inventory & Prescription Management System.
-Enhanced with custom glassmorphism styling, polished metrics, and a modern aesthetic.
+Enhanced with local background image (bg_pharmacy.jpg), custom glassmorphism styling, and clean UI.
 """
 
 import sqlite3
+import base64
 from datetime import date
 
 import streamlit as st
@@ -20,84 +21,103 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+# Helper function to convert local image to base64 for reliable CSS injection
+def get_base64_image(image_path):
+    try:
+        with open(image_path, "rb") as img_file:
+            return base64.b64encode(img_file.read()).decode()
+    except Exception:
+        return ""
+
+img_base64 = get_base64_image("bg_pharmacy.jpg")
+bg_css = f"url('data:image/jpeg;base64,{img_base64}')" if img_base64 else "linear-gradient(135deg, #090d16 0%, #0f172a 100%)"
+
 # -----------------------------------------------------------------------------
 # CUSTOM STYLING & UI INJECTION
 # -----------------------------------------------------------------------------
-st.markdown("""
+st.markdown(f"""
 <style>
-    /* Main Background & Font Styling */
-    .stApp {
-        background: linear-gradient(135deg, #090d16 0%, #0f172a 100%);
+    /* Main Background & Font Styling with local bg_pharmacy.jpg */
+    .stApp {{
+        background-image: linear-gradient(rgba(15, 23, 42, 0.88), rgba(15, 23, 42, 0.94)), {bg_css};
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
         font-family: 'Inter', system-ui, -apple-system, sans-serif;
         color: #f1f5f9;
-    }
+    }}
     
     /* Modern Header / Hero Banner */
-    .main-header {
-        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    .main-header {{
+        background: rgba(30, 41, 59, 0.85);
+        backdrop-filter: blur(10px);
         padding: 1.5rem 2rem;
         border-radius: 12px;
         border: 1px solid #334155;
         margin-bottom: 2rem;
         box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
     }
-    .main-header h1 {
+    .main-header h1 {{
         color: #f8fafc;
         font-weight: 700;
         margin: 0;
         font-size: 1.85rem;
-    }
-    .main-header p {
+    }}
+    .main-header p {{
         color: #94a3b8;
         margin: 0.3rem 0 0 0;
         font-size: 0.95rem;
-    }
+    }}
 
     /* Custom Metric Cards */
-    div[data-testid="stMetric"] {
-        background: #1e293b;
+    div[data-testid="stMetric"] {{
+        background: rgba(30, 41, 59, 0.85);
+        backdrop-filter: blur(8px);
         border: 1px solid #334155;
-        padding: 1rem 1.25rem;
+        padding: 0.75rem 0.5rem;
         border-radius: 10px;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        text-align: center;
         transition: transform 0.2s ease, border-color 0.2s ease;
     }
-    div[data-testid="stMetric"]:hover {
+    div[data-testid="stMetric"]:hover {{
         transform: translateY(-2px);
         border-color: #38bdf8;
     }
-    div[data-testid="stMetric"] label {
+    div[data-testid="stMetric"] label {{
         color: #94a3b8 !important;
-        font-size: 0.8rem !important;
+        font-size: 0.65rem !important;
         text-transform: uppercase;
-        letter-spacing: 0.05em;
+        letter-spacing: 0.03em;
+        white-space: normal !important;
+        word-break: break-word;
     }
-    div[data-testid="stMetric"] div[data-testid="stMetricValue"] {
+    div[data-testid="stMetric"] div[data-testid="stMetricValue"] {{
         color: #f8fafc !important;
-        font-size: 1.75rem !important;
+        font-size: 1.4rem !important;
         font-weight: 700;
-    }
+    }}
 
     /* Sidebar Refinements */
-    section[data-testid="stSidebar"] {
-        background-color: #0b1120;
+    section[data-testid="stSidebar"] {{
+        background-color: rgba(11, 17, 32, 0.95);
         border-right: 1px solid #1e293b;
     }
-    section[data-testid="stSidebar"] .stSelectbox label {
+    section[data-testid="stSidebar"] .stSelectbox label {{
         color: #94a3b8;
-    }
+    }}
 
     /* Table & Dataframe containers */
-    div[data-testid="stTable"] {
-        background-color: #1e293b;
+    div[data-testid="stTable"] {{
+        background-color: rgba(30, 41, 59, 0.85);
         border-radius: 8px;
         border: 1px solid #334155;
         padding: 0.5rem;
-    }
+    }}
 
     /* Hide default Streamlit elements */
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
+    #MainMenu {{visibility: hidden;}}
+    footer {{visibility: hidden;}}
 </style>
 """, unsafe_allow_html=True)
 
@@ -165,7 +185,6 @@ with st.sidebar:
                 st.rerun()
 
     st.divider()
-    st.caption("SQLite (Python stdlib), seeded from the project's Phase 3-5 schema & data.")
 
 # Add / Edit form
 def render_form():
@@ -448,7 +467,7 @@ def render_dashboard():
     st.markdown("""
     <div class="main-header">
         <h1>Pharmacy Dashboard</h1>
-        <p>Live operational overview of stock levels, active prescriptions, and alerts.</p>
+        <p>Real-time inventory metrics and stock alerts.</p>
     </div>
     """, unsafe_allow_html=True)
 
