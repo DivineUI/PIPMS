@@ -6,6 +6,7 @@ Enhanced with local background image (bg_pharmacy.jpg), custom glassmorphism sty
 
 import sqlite3
 import base64
+import pandas as pd
 from datetime import date
 
 import streamlit as st
@@ -535,10 +536,7 @@ def render_reports():
         st.subheader(title)
         rows = database.query(conn, sql)
         if rows:
-            # Convert rows to a Pandas DataFrame for easy CSV downloading
-            import pandas as pd
             df = pd.DataFrame(rows)
-            
             st.dataframe(df, use_container_width=True, hide_index=True)
             
             # CSV Download Button
@@ -553,3 +551,22 @@ def render_reports():
         else:
             st.info("No rows.")
         st.divider()
+
+# Route
+section = st.session_state.section
+
+if not can_read(st.session_state.role, section):
+    st.title("Access restricted")
+    st.warning(f"Your current role ({st.session_state.role}) doesn't have access to this section.")
+elif st.session_state.drill is not None:
+    drill_type, drill_id = st.session_state.drill
+    if drill_type == "prescription_items":
+        render_prescription_items(drill_id)
+    else:
+        render_purchase_items(drill_id)
+elif section == "DASHBOARD":
+    render_dashboard()
+elif section == "REPORTS":
+    render_reports()
+else:
+    render_entity(section)
