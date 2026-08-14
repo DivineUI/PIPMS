@@ -364,7 +364,10 @@ def render_entity(entity_key):
         render_form()
         return
 
-    toolbar = st.columns([3] + [1] * len(ent["filters"]) + [1])
+    # Fetch rows first so we can use them for search, filtering, and CSV export
+    rows = database.query(conn, ent["list_sql"])
+    
+    toolbar = st.columns([3] + [1] * len(ent["filters"]) + [1, 1])
     search_val = toolbar[0].text_input(f"Search {ent['label'].lower()}\u2026",
                                         value=st.session_state.search.get(entity_key, ""),
                                         key=f"search_{entity_key}", label_visibility="collapsed",
@@ -376,12 +379,28 @@ def render_entity(entity_key):
         active[f["key"]] = toolbar[i + 1].checkbox(f["label"], value=active.get(f["key"], False),
                                                      key=f"filter_{entity_key}_{f['key']}")
 
+    # Add button
+    add_col_idx = len(ent["filters"]) + 1
     if can_create:
-        if toolbar[-1].button(f"+ Add {singular(ent['label'])}", key=f"add_{entity_key}", type="primary"):
+        if toolbar[add_col_idx].button(f"+ Add {singular(ent['label'])}", key=f"add_{entity_key}", type="primary", use_container_width=True):
             st.session_state.form_mode = ("add", entity_key, None, None)
             st.rerun()
 
-    rows = database.query(conn, ent["list_sql"])
+    # Download CSV button
+    download_col_idx = len(ent["filters"]) + 2
+    if rows:
+        df_export = pd.DataFrame(rows)
+        csv_bytes = df_export.to_csv(index=False).encode('utf-8')
+        toolbar[download_col_idx].download_button(
+            label="📥 Download CSV",
+            data=csv_bytes,
+            file_name=f"{entity_key.lower()}_export.csv",
+            mime="text/csv",
+            key=f"download_btn_{entity_key}",
+            use_container_width=True
+        )
+
+    # Filter/Search execution
     if search_val.strip():
         t = search_val.strip().lower()
         rows = [r for r in rows if any(t in str(r.get(k, "") or "").lower() for k in ent["search_keys"])]
@@ -391,8 +410,6 @@ def render_entity(entity_key):
 
     st.caption(f"{len(rows)} record{'s' if len(rows) != 1 else ''}")
     render_table(ent, rows, entity_key, can_update, can_delete)
-
-
 # ---------------------------------------------------------------------------
 # Drill-down views (prescription items / purchase items for one parent row)
 # ---------------------------------------------------------------------------
