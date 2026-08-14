@@ -62,11 +62,6 @@ st.markdown(f"""
         margin: 0;
         font-size: 1.85rem;
     }}
-    .main-header p {{
-        color: #94a3b8;
-        margin: 0.3rem 0 0 0;
-        font-size: 0.95rem;
-    }}
 
     div[data-testid="stMetric"] {{
         background: rgba(30, 41, 59, 0.85);
@@ -175,7 +170,6 @@ def render_form():
     st.markdown(f"""
     <div class="main-header">
         <h1>{("Edit " if is_edit else "Add ") + singular(ent["label"])}</h1>
-        <p>Fill in the required information below.</p>
     </div>
     """, unsafe_allow_html=True)
 
@@ -264,8 +258,6 @@ def render_table(ent, rows, entity_key, can_update, can_delete):
         return
 
     show_actions = can_update or can_delete or ent["row_extra"]
-    ncols = len(ent["columns"]) + (1 if show_actions else 0)
-    # Give the actions column a slightly narrower weight so data columns get more space
     weights = [2] * len(ent["columns"]) + ([1] if show_actions else [])
 
     header = st.columns(weights)
@@ -279,13 +271,10 @@ def render_table(ent, rows, entity_key, can_update, can_delete):
         for c, col in zip(cells, ent["columns"]):
             val = row.get(col["key"])
             c.write(col["fmt"](val) if col.get("fmt") else (val if val is not None else "\u2014"))
-        
         if show_actions:
             with cells[-1]:
                 pk = row[ent["pk"]]
-                # Use a tight horizontal layout for action buttons
                 act_cols = st.columns(3 if (ent["row_extra"] and can_update and can_delete) else (2 if (ent["row_extra"] or (can_update and can_delete)) else 1))
-                
                 col_idx = 0
                 if ent["row_extra"]:
                     if act_cols[col_idx].button("📋", key=f"items_{entity_key}_{pk}", help="View Items"):
@@ -304,12 +293,12 @@ def render_table(ent, rows, entity_key, can_update, can_delete):
                         st.session_state.confirm_delete = (entity_key, pk)
                         st.rerun()
 
+
 def render_entity(entity_key):
     ent = ENTITIES[entity_key]
     st.markdown(f"""
     <div class="main-header">
         <h1>{ent["title"]}</h1>
-        <p>{ent["desc"]}</p>
     </div>
     """, unsafe_allow_html=True)
 
@@ -341,7 +330,6 @@ def render_entity(entity_key):
 
     rows = database.query(conn, ent["list_sql"])
 
-    # Toolbar setup safely avoiding column count mismatches
     num_filters = len(ent["filters"])
     cols_spec = [3] + [1] * num_filters + ([1] if can_create else [])
     toolbar = st.columns(cols_spec)
@@ -371,7 +359,6 @@ def render_entity(entity_key):
 
     st.caption(f"{len(rows)} record{'s' if len(rows) != 1 else ''}")
     
-    # CSV Download option right above table
     if rows:
         df_export = pd.DataFrame(rows)
         csv_bytes = df_export.to_csv(index=False).encode('utf-8')
@@ -390,7 +377,6 @@ def render_prescription_items(rx_id):
     st.markdown(f"""
     <div class="main-header">
         <h1>Items for Prescription #{rx_id}</h1>
-        <p>Detailed breakdown of dispensed medicines.</p>
     </div>
     """, unsafe_allow_html=True)
     
@@ -413,7 +399,6 @@ def render_purchase_items(po_id):
     st.markdown(f"""
     <div class="main-header">
         <h1>Items for Purchase Order #{po_id}</h1>
-        <p>Detailed breakdown of received stock items.</p>
     </div>
     """, unsafe_allow_html=True)
     
@@ -436,7 +421,6 @@ def render_dashboard():
     st.markdown("""
     <div class="main-header">
         <h1>Pharmacy Dashboard</h1>
-        <p>Real-time inventory metrics and stock alerts.</p>
     </div>
     """, unsafe_allow_html=True)
 
@@ -475,7 +459,6 @@ def render_reports():
     st.markdown("""
     <div class="main-header">
         <h1>Operational Reports</h1>
-        <p>Live database queries and analytical snapshots.</p>
     </div>
     """, unsafe_allow_html=True)
 
