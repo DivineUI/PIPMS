@@ -1,7 +1,7 @@
 """
 app.py
 Pharmacy Inventory & Prescription Management System.
-Enhanced with local background image (bg_pharmacy.jpg), custom glassmorphism styling, and clean UI.
+Enhanced with a professional light medical/clinical theme and clean layout.
 """
 
 import sqlite3
@@ -31,65 +31,92 @@ def get_base64_image(image_path):
         return ""
 
 img_base64 = get_base64_image("bg_pharmacy.jpg")
-bg_css = f"url('data:image/jpeg;base64,{img_base64}')" if img_base64 else "linear-gradient(135deg, #090d16 0%, #0f172a 100%)"
+bg_css = f"url('data:image/jpeg;base64,{img_base64}')" if img_base64 else "linear-gradient(135deg, #f0fdf4 0%, #e0f2fe 100%)"
 
 # -----------------------------------------------------------------------------
-# CUSTOM STYLING & UI INJECTION
+# PROFESSIONAL CLINICAL / PHARMACY LIGHT THEME STYLING
 # -----------------------------------------------------------------------------
 st.markdown(f"""
 <style>
+    /* Clean Medical Light Background */
     .stApp {{
-        background-image: linear-gradient(rgba(15, 23, 42, 0.88), rgba(15, 23, 42, 0.94)), {bg_css};
+        background-image: linear-gradient(rgba(248, 250, 252, 0.92), rgba(241, 245, 249, 0.96)), {bg_css};
         background-size: cover;
         background-position: center;
         background-attachment: fixed;
         font-family: 'Inter', system-ui, -apple-system, sans-serif;
-        color: #f1f5f9;
+        color: #1e293b;
     }}
     
+    /* Modern Clinical Header Banner */
     .main-header {{
-        background: rgba(30, 41, 59, 0.85);
-        backdrop-filter: blur(10px);
+        background: #ffffff;
         padding: 1.5rem 2rem;
-        border-radius: 12px;
-        border: 1px solid #334155;
+        border-radius: 10px;
+        border-left: 6px solid #0284c7;
+        border-top: 1px solid #e2e8f0;
+        border-right: 1px solid #e2e8f0;
+        border-bottom: 1px solid #e2e8f0;
         margin-bottom: 2rem;
-        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
     }}
     .main-header h1 {{
-        color: #f8fafc;
+        color: #0f172a;
         font-weight: 700;
         margin: 0;
-        font-size: 1.85rem;
+        font-size: 1.75rem;
     }}
 
+    /* Professional Metric Cards */
     div[data-testid="stMetric"] {{
-        background: rgba(30, 41, 59, 0.85);
-        backdrop-filter: blur(8px);
-        border: 1px solid #334155;
+        background: #ffffff;
+        border: 1px solid #cbd5e1;
         padding: 0.75rem 0.5rem;
-        border-radius: 10px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
         text-align: center;
     }}
     div[data-testid="stMetric"] label {{
-        color: #94a3b8 !important;
-        font-size: 0.65rem !important;
+        color: #64748b !important;
+        font-size: 0.7rem !important;
         text-transform: uppercase;
-        letter-spacing: 0.03em;
-        white-space: normal !important;
+        font-weight: 600;
+        letter-spacing: 0.04em;
     }}
     div[data-testid="stMetric"] div[data-testid="stMetricValue"] {{
-        color: #f8fafc !important;
-        font-size: 1.4rem !important;
+        color: #0284c7 !important;
+        font-size: 1.5rem !important;
         font-weight: 700;
     }}
 
+    /* Custom Pharmacy Navigation Sidebar */
     section[data-testid="stSidebar"] {{
-        background-color: rgba(11, 17, 32, 0.95);
-        border-right: 1px solid #1e293b;
+        background-color: #0f172a;
+        border-right: 1px solid #cbd5e1;
+        color: #f8fafc;
+    }}
+    section[data-testid="stSidebar"] .stSelectbox label,
+    section[data-testid="stSidebar"] span,
+    section[data-testid="stSidebar"] p,
+    section[data-testid="stSidebar"] h3 {{
+        color: #f8fafc !important;
     }}
     
+    /* Make Sidebar Navigation Buttons Look Clean & Polished */
+    section[data-testid="stSidebar"] button {{
+        background-color: #1e293b !important;
+        color: #f8fafc !important;
+        border: 1px solid #334155 !important;
+        border-radius: 6px;
+        font-weight: 500;
+    }}
+    section[data-testid="stSidebar"] button:hover {{
+        background-color: #0284c7 !important;
+        border-color: #0284c7 !important;
+        color: #ffffff !important;
+    }}
+
+    /* Hide default Streamlit elements */
     #MainMenu {{visibility: hidden;}}
     footer {{visibility: hidden;}}
 </style>
@@ -125,7 +152,7 @@ def friendly_sql_error(err: Exception) -> str:
 
 with st.sidebar:
     st.markdown("### \u211E PIPMS")
-    st.caption("Pharmacy Inventory & Prescriptions")
+    st.caption("Hospital Pharmacy & Prescriptions")
     st.divider()
 
     role = st.selectbox("Signed in as", ROLES, index=ROLES.index(st.session_state.role))
@@ -144,7 +171,7 @@ with st.sidebar:
         visible = [it for it in items if can_read(st.session_state.role, it[0])]
         if not visible:
             continue
-        st.markdown(f"<p style='color: #64748b; font-size: 0.75rem; font-weight: 700; margin-top: 1rem;'>{group_label.upper()}</p>", unsafe_allow_html=True)
+        st.markdown(f"<p style='color: #94a3b8; font-size: 0.75rem; font-weight: 700; margin-top: 1rem;'>{group_label.upper()}</p>", unsafe_allow_html=True)
         for key, label, icon in visible:
             is_active = key == st.session_state.section and st.session_state.drill is None
             if st.button(f"{icon}  {label}", key=f"nav_{key}", use_container_width=True,
