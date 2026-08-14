@@ -265,7 +265,8 @@ def render_table(ent, rows, entity_key, can_update, can_delete):
 
     show_actions = can_update or can_delete or ent["row_extra"]
     ncols = len(ent["columns"]) + (1 if show_actions else 0)
-    weights = [2] * len(ent["columns"]) + ([2] if show_actions else [])
+    # Give the actions column a slightly narrower weight so data columns get more space
+    weights = [2] * len(ent["columns"]) + ([1] if show_actions else [])
 
     header = st.columns(weights)
     for c, col in zip(header, ent["columns"]):
@@ -278,27 +279,30 @@ def render_table(ent, rows, entity_key, can_update, can_delete):
         for c, col in zip(cells, ent["columns"]):
             val = row.get(col["key"])
             c.write(col["fmt"](val) if col.get("fmt") else (val if val is not None else "\u2014"))
+        
         if show_actions:
             with cells[-1]:
-                b1, b2, b3 = st.columns(3)
                 pk = row[ent["pk"]]
-                if ent["row_extra"] == "prescription_items":
-                    if b1.button("Items", key=f"items_{entity_key}_{pk}"):
-                        st.session_state.drill = ("prescription_items", pk)
+                # Use a tight horizontal layout for action buttons
+                act_cols = st.columns(3 if (ent["row_extra"] and can_update and can_delete) else (2 if (ent["row_extra"] or (can_update and can_delete)) else 1))
+                
+                col_idx = 0
+                if ent["row_extra"]:
+                    if act_cols[col_idx].button("📋", key=f"items_{entity_key}_{pk}", help="View Items"):
+                        st.session_state.drill = (ent["row_extra"], pk)
                         st.rerun()
-                elif ent["row_extra"] == "purchase_items":
-                    if b1.button("Items", key=f"items_{entity_key}_{pk}"):
-                        st.session_state.drill = ("purchase_items", pk)
-                        st.rerun()
+                    col_idx += 1
+                
                 if can_update and not ent.get("no_edit"):
-                    if b2.button("Edit", key=f"edit_{entity_key}_{pk}"):
+                    if act_cols[col_idx].button("✏️", key=f"edit_{entity_key}_{pk}", help="Edit Record"):
                         st.session_state.form_mode = ("edit", entity_key, pk, None)
                         st.rerun()
+                    col_idx += 1
+                
                 if can_delete:
-                    if b3.button("Delete", key=f"del_{entity_key}_{pk}"):
+                    if act_cols[col_idx].button("🗑️", key=f"del_{entity_key}_{pk}", help="Delete Record"):
                         st.session_state.confirm_delete = (entity_key, pk)
                         st.rerun()
-
 
 def render_entity(entity_key):
     ent = ENTITIES[entity_key]
