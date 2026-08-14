@@ -1,7 +1,7 @@
 """
 app.py
 Pharmacy Inventory & Prescription Management System.
-
+Enhanced with custom glassmorphism styling, polished metrics, and a modern aesthetic.
 """
 
 import sqlite3
@@ -13,7 +13,93 @@ import database
 from entities import ENTITIES, NAV, singular
 from permissions import ROLES, can, can_read
 
-st.set_page_config(page_title="PIPMS — Pharmacy Inventory & Prescriptions", layout="wide")
+st.set_page_config(
+    page_title="PIPMS — Pharmacy Inventory & Prescriptions",
+    page_icon="℞",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
+
+# -----------------------------------------------------------------------------
+# CUSTOM STYLING & UI INJECTION
+# -----------------------------------------------------------------------------
+st.markdown("""
+<style>
+    /* Main Background & Font Styling */
+    .stApp {
+        background: linear-gradient(135deg, #090d16 0%, #0f172a 100%);
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        color: #f1f5f9;
+    }
+    
+    /* Modern Header / Hero Banner */
+    .main-header {
+        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        padding: 1.5rem 2rem;
+        border-radius: 12px;
+        border: 1px solid #334155;
+        margin-bottom: 2rem;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+    }
+    .main-header h1 {
+        color: #f8fafc;
+        font-weight: 700;
+        margin: 0;
+        font-size: 1.85rem;
+    }
+    .main-header p {
+        color: #94a3b8;
+        margin: 0.3rem 0 0 0;
+        font-size: 0.95rem;
+    }
+
+    /* Custom Metric Cards */
+    div[data-testid="stMetric"] {
+        background: #1e293b;
+        border: 1px solid #334155;
+        padding: 1rem 1.25rem;
+        border-radius: 10px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+    div[data-testid="stMetric"]:hover {
+        transform: translateY(-2px);
+        border-color: #38bdf8;
+    }
+    div[data-testid="stMetric"] label {
+        color: #94a3b8 !important;
+        font-size: 0.8rem !important;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+    div[data-testid="stMetric"] div[data-testid="stMetricValue"] {
+        color: #f8fafc !important;
+        font-size: 1.75rem !important;
+        font-weight: 700;
+    }
+
+    /* Sidebar Refinements */
+    section[data-testid="stSidebar"] {
+        background-color: #0b1120;
+        border-right: 1px solid #1e293b;
+    }
+    section[data-testid="stSidebar"] .stSelectbox label {
+        color: #94a3b8;
+    }
+
+    /* Table & Dataframe containers */
+    div[data-testid="stTable"] {
+        background-color: #1e293b;
+        border-radius: 8px;
+        border: 1px solid #334155;
+        padding: 0.5rem;
+    }
+
+    /* Hide default Streamlit elements */
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+</style>
+""", unsafe_allow_html=True)
 
 # Session state / DB bootstrap
 
@@ -68,7 +154,7 @@ with st.sidebar:
         visible = [it for it in items if can_read(st.session_state.role, it[0])]
         if not visible:
             continue
-        st.caption(group_label.upper())
+        st.markdown(f"<p style='color: #64748b; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.05em; margin-top: 1rem;'>{group_label.upper()}</p>", unsafe_allow_html=True)
         for key, label, icon in visible:
             is_active = key == st.session_state.section and st.session_state.drill is None
             if st.button(f"{icon}  {label}", key=f"nav_{key}", use_container_width=True,
@@ -92,7 +178,12 @@ def render_form():
     elif presets:
         record = dict(presets)
 
-    st.subheader(("Edit " if is_edit else "Add ") + singular(ent["label"]))
+    st.markdown(f"""
+    <div class="main-header">
+        <h1>{("Edit " if is_edit else "Add ") + singular(ent["label"])}</h1>
+        <p>Fill in the required information below.</p>
+    </div>
+    """, unsafe_allow_html=True)
 
     with st.form(key=f"form_{entity_key}_{pk}"):
         values = {}
@@ -220,8 +311,12 @@ def render_table(ent, rows, entity_key, can_update, can_delete):
 
 def render_entity(entity_key):
     ent = ENTITIES[entity_key]
-    st.title(ent["title"])
-    st.caption(ent["desc"])
+    st.markdown(f"""
+    <div class="main-header">
+        <h1>{ent["title"]}</h1>
+        <p>{ent["desc"]}</p>
+    </div>
+    """, unsafe_allow_html=True)
 
     role = st.session_state.role
     can_create = can(role, entity_key, "c")
@@ -283,7 +378,13 @@ def render_entity(entity_key):
 # ---------------------------------------------------------------------------
 def render_prescription_items(rx_id):
     ent = ENTITIES["PRESCRIPTION_ITEM"]
-    st.title(f"Items for Prescription #{rx_id}")
+    st.markdown(f"""
+    <div class="main-header">
+        <h1>Items for Prescription #{rx_id}</h1>
+        <p>Detailed breakdown of dispensed medicines.</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
     if st.button("\u2190 All prescriptions"):
         st.session_state.drill = None
         st.rerun()
@@ -294,7 +395,7 @@ def render_prescription_items(rx_id):
 
     can_create = can(st.session_state.role, "PRESCRIPTION_ITEM", "c")
     if can_create:
-        if st.button("+ Dispense item"):
+        if st.button("+ Dispense item", type="primary"):
             st.session_state.form_mode = ("add", "PRESCRIPTION_ITEM", None, {"PrescriptionID": rx_id})
             st.rerun()
 
@@ -309,7 +410,13 @@ def render_prescription_items(rx_id):
 
 
 def render_purchase_items(po_id):
-    st.title(f"Items for Purchase Order #{po_id}")
+    st.markdown(f"""
+    <div class="main-header">
+        <h1>Items for Purchase Order #{po_id}</h1>
+        <p>Detailed breakdown of received stock items.</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
     if st.button("\u2190 All purchases"):
         st.session_state.drill = None
         st.rerun()
@@ -320,7 +427,7 @@ def render_purchase_items(po_id):
 
     can_create = can(st.session_state.role, "PURCHASE_ITEM", "c")
     if can_create:
-        if st.button("+ Receive item"):
+        if st.button("+ Receive item", type="primary"):
             st.session_state.form_mode = ("add", "PURCHASE_ITEM", None, {"PurchaseID": po_id})
             st.rerun()
 
@@ -338,8 +445,12 @@ def render_purchase_items(po_id):
 # Dashboard
 # ---------------------------------------------------------------------------
 def render_dashboard():
-    st.title("Dashboard")
-    st.caption("Overview of stock, prescriptions and alerts")
+    st.markdown("""
+    <div class="main-header">
+        <h1>Pharmacy Dashboard</h1>
+        <p>Live operational overview of stock levels, active prescriptions, and alerts.</p>
+    </div>
+    """, unsafe_allow_html=True)
 
     med_count = database.query_one(conn, "SELECT COUNT(*) AS n FROM MEDICINE")["n"]
     cust_count = database.query_one(conn, "SELECT COUNT(*) AS n FROM CUSTOMER")["n"]
@@ -356,18 +467,17 @@ def render_dashboard():
     c5.metric("Low-stock alerts", len(low))
     c6.metric("Expiring within 60 days", len(expiring))
 
-    st.divider()
+    st.write("")
+    st.write("")
     col_a, col_b = st.columns(2)
     with col_a:
         st.subheader("\u211E Low stock \u2014 reorder soon")
-        st.caption("View_LowStock")
         if low:
             st.table(low)
         else:
             st.info("Nothing is currently low on stock.")
     with col_b:
         st.subheader("\u211E Expiring or expired batches")
-        st.caption("View_ExpiringMedicines")
         if expiring:
             st.table(expiring)
         else:
@@ -378,8 +488,12 @@ def render_dashboard():
 # Reports (Phase 6 views)
 # ---------------------------------------------------------------------------
 def render_reports():
-    st.title("Reports")
-    st.caption("Live views over the pharmacy database")
+    st.markdown("""
+    <div class="main-header">
+        <h1>Operational Reports</h1>
+        <p>Live database queries and analytical snapshots.</p>
+    </div>
+    """, unsafe_allow_html=True)
 
     reports = [
         ("Expiring Medicines", "View_ExpiringMedicines",
