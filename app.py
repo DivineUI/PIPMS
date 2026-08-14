@@ -33,7 +33,7 @@ img_base64 = get_base64_image("bg_pharmacy.jpg")
 bg_css = f"url('data:image/jpeg;base64,{img_base64}')" if img_base64 else "linear-gradient(135deg, #090d16 0%, #0f172a 100%)"
 
 # -----------------------------------------------------------------------------
-# CUSTOM STYLING & UI INJECTION
+# CUSTOM STYLING & UI INJECTION (Doubled curly braces {{ }} to escape f-string)
 # -----------------------------------------------------------------------------
 st.markdown(f"""
 <style>
@@ -56,7 +56,7 @@ st.markdown(f"""
         border: 1px solid #334155;
         margin-bottom: 2rem;
         box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
-    }
+    }}
     .main-header h1 {{
         color: #f8fafc;
         font-weight: 700;
@@ -79,11 +79,11 @@ st.markdown(f"""
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         text-align: center;
         transition: transform 0.2s ease, border-color 0.2s ease;
-    }
+    }}
     div[data-testid="stMetric"]:hover {{
         transform: translateY(-2px);
         border-color: #38bdf8;
-    }
+    }}
     div[data-testid="stMetric"] label {{
         color: #94a3b8 !important;
         font-size: 0.65rem !important;
@@ -91,7 +91,7 @@ st.markdown(f"""
         letter-spacing: 0.03em;
         white-space: normal !important;
         word-break: break-word;
-    }
+    }}
     div[data-testid="stMetric"] div[data-testid="stMetricValue"] {{
         color: #f8fafc !important;
         font-size: 1.4rem !important;
@@ -102,7 +102,7 @@ st.markdown(f"""
     section[data-testid="stSidebar"] {{
         background-color: rgba(11, 17, 32, 0.95);
         border-right: 1px solid #1e293b;
-    }
+    }}
     section[data-testid="stSidebar"] .stSelectbox label {{
         color: #94a3b8;
     }}
@@ -129,9 +129,9 @@ if "conn" not in st.session_state:
     st.session_state.section = "DASHBOARD"
     st.session_state.search = {}
     st.session_state.active_filters = {}
-    st.session_state.form_mode = None          # ("add"|"edit", entity_key, pk_or_None, presets_or_None)
-    st.session_state.confirm_delete = None      # (entity_key, pk)
-    st.session_state.drill = None               # ("prescription_items"|"purchase_items", parent_id)
+    st.session_state.form_mode = None          
+    st.session_state.confirm_delete = None      
+    st.session_state.drill = None               
 
 conn: sqlite3.Connection = st.session_state.conn
 
