@@ -530,31 +530,26 @@ def render_reports():
          "DosageInstructions AS Instructions, Duration, PharmacistName AS Pharmacist "
          "FROM View_PrescriptionHistory LIMIT 30"),
     ]
+    
     for title, view_name, sql in reports:
         st.subheader(title)
-        st.caption(f"SELECT \u2026 FROM {view_name}")
         rows = database.query(conn, sql)
         if rows:
-            st.dataframe(rows, use_container_width=True, hide_index=True)
+            # Convert rows to a Pandas DataFrame for easy CSV downloading
+            import pandas as pd
+            df = pd.DataFrame(rows)
+            
+            st.dataframe(df, use_container_width=True, hide_index=True)
+            
+            # CSV Download Button
+            csv_data = df.to_csv(index=False).encode('utf-8')
+            st.download_button(
+                label=f"📥 Download {title} as CSV",
+                data=csv_data,
+                file_name=f"{view_name.lower()}_report.csv",
+                mime="text/csv",
+                key=f"download_{view_name}"
+            )
         else:
             st.info("No rows.")
         st.divider()
-
-# Route
-section = st.session_state.section
-
-if not can_read(st.session_state.role, section):
-    st.title("Access restricted")
-    st.warning(f"Your current role ({st.session_state.role}) doesn't have access to this section.")
-elif st.session_state.drill is not None:
-    drill_type, drill_id = st.session_state.drill
-    if drill_type == "prescription_items":
-        render_prescription_items(drill_id)
-    else:
-        render_purchase_items(drill_id)
-elif section == "DASHBOARD":
-    render_dashboard()
-elif section == "REPORTS":
-    render_reports()
-else:
-    render_entity(section)
