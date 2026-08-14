@@ -1,7 +1,7 @@
 """
 app.py
 Pharmacy Inventory & Prescription Management System.
-Enhanced with a crisp high-clarity medical interface.
+Enhanced with a crisp high-clarity medical interface and fully visible dashboard tables.
 """
 
 import sqlite3
@@ -34,7 +34,7 @@ img_base64 = get_base64_image("bg_pharmacy.jpg")
 bg_css = f"url('data:image/jpeg;base64,{img_base64}')" if img_base64 else "linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)"
 
 # -----------------------------------------------------------------------------
-# HIGH-CLARITY LIGHT CLINICAL STYLING (Reduced dark tint for maximum clarity)
+# HIGH-CLARITY LIGHT CLINICAL STYLING (Explicit dark text for table and label visibility)
 # -----------------------------------------------------------------------------
 st.markdown(f"""
 <style>
@@ -45,9 +45,14 @@ st.markdown(f"""
         background-position: center;
         background-attachment: fixed;
         font-family: 'Inter', system-ui, -apple-system, sans-serif;
-        color: #0f172a;
+        color: #0f172a !important;
     }}
     
+    /* Ensure all headers, table rows, and text are fully dark and readable */
+    h1, h2, h3, h4, h5, h6, p, span, label, th, td {{
+        color: #0f172a !important;
+    }}
+
     /* Clean Solid Header Banner */
     .main-header {{
         background: #ffffff;
@@ -59,7 +64,7 @@ st.markdown(f"""
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
     }}
     .main-header h1 {{
-        color: #0f172a;
+        color: #0f172a !important;
         font-weight: 700;
         margin: 0;
         font-size: 1.75rem;
@@ -87,19 +92,14 @@ st.markdown(f"""
         font-weight: 700;
     }}
 
-    /* Professional Clinical Sidebar */
+    /* Professional Clinical Sidebar (Keeps sidebar dark and readable) */
     section[data-testid="stSidebar"] {{
-        background-color: #0f172a;
+        background-color: #0f172a !important;
         border-right: 1px solid #cbd5e1;
-        color: #f8fafc;
     }}
-    section[data-testid="stSidebar"] .stSelectbox label,
-    section[data-testid="stSidebar"] span,
-    section[data-testid="stSidebar"] p,
-    section[data-testid="stSidebar"] h3 {{
+    section[data-testid="stSidebar"] *, section[data-testid="stSidebar"] span, section[data-testid="stSidebar"] p, section[data-testid="stSidebar"] h3 {{
         color: #f8fafc !important;
     }}
-    
     section[data-testid="stSidebar"] button {{
         background-color: #1e293b !important;
         color: #f8fafc !important;
