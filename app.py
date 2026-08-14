@@ -1,7 +1,7 @@
 """
 app.py
 Pharmacy Inventory & Prescription Management System.
-Enhanced with a crisp high-clarity medical interface and fully visible dashboard tables.
+Enhanced with medical blue/green clinical containers and high-contrast dashboard tables.
 """
 
 import sqlite3
@@ -31,16 +31,16 @@ def get_base64_image(image_path):
         return ""
 
 img_base64 = get_base64_image("bg_pharmacy.jpg")
-bg_css = f"url('data:image/jpeg;base64,{img_base64}')" if img_base64 else "linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)"
+bg_css = f"url('data:image/jpeg;base64,{img_base64}')" if img_base64 else "linear-gradient(135deg, #f0fdf4 0%, #e0f2fe 100%)"
 
 # -----------------------------------------------------------------------------
-# HIGH-CLARITY LIGHT CLINICAL STYLING (Explicit dark text for table and label visibility)
+# CLINICAL STYLING (Medical Blue & Soft Mint Green Cards with Dark High-Contrast Text)
 # -----------------------------------------------------------------------------
 st.markdown(f"""
 <style>
-    /* Bright Frosted Overlay to make background clear and text sharp */
+    /* Balanced Background Overlay */
     .stApp {{
-        background-image: linear-gradient(rgba(255, 255, 255, 0.88), rgba(248, 250, 252, 0.92)), {bg_css};
+        background-image: linear-gradient(rgba(255, 255, 255, 0.78), rgba(240, 249, 255, 0.85)), {bg_css};
         background-size: cover;
         background-position: center;
         background-attachment: fixed;
@@ -53,7 +53,7 @@ st.markdown(f"""
         color: #0f172a !important;
     }}
 
-    /* Clean Solid Header Banner */
+    /* Modern Medical Header Banner */
     .main-header {{
         background: #ffffff;
         padding: 1.5rem 2rem;
@@ -70,29 +70,38 @@ st.markdown(f"""
         font-size: 1.75rem;
     }}
 
-    /* Crisp Metric Cards */
+    /* Clinical Blue/Green Styled Metric Cards */
     div[data-testid="stMetric"] {{
-        background: #ffffff;
-        border: 1px solid #cbd5e1;
+        background: linear-gradient(135deg, #f0fdf4 0%, #e0f2fe 100%) !important;
+        border: 1px solid #7dd3fc;
         padding: 0.75rem 0.5rem;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+        border-radius: 10px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
         text-align: center;
     }}
     div[data-testid="stMetric"] label {{
-        color: #475569 !important;
-        font-size: 0.7rem !important;
+        color: #334155 !important;
+        font-size: 0.68rem !important;
         text-transform: uppercase;
-        font-weight: 600;
+        font-weight: 700;
         letter-spacing: 0.04em;
     }}
     div[data-testid="stMetric"] div[data-testid="stMetricValue"] {{
-        color: #0284c7 !important;
-        font-size: 1.5rem !important;
-        font-weight: 700;
+        color: #0369a1 !important;
+        font-size: 1.4rem !important;
+        font-weight: 800;
     }}
 
-    /* Professional Clinical Sidebar (Keeps sidebar dark and readable) */
+    /* Solid White Containers for Dashboard Tables to Maximize Visibility */
+    div[data-testid="stTable"], .stDataFrame {{
+        background-color: #ffffff !important;
+        border-radius: 10px;
+        border: 1px solid #cbd5e1;
+        padding: 0.5rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03);
+    }}
+
+    /* Professional Clinical Sidebar */
     section[data-testid="stSidebar"] {{
         background-color: #0f172a !important;
         border-right: 1px solid #cbd5e1;
@@ -113,7 +122,6 @@ st.markdown(f"""
         color: #ffffff !important;
     }}
 
-    /* Hide default Streamlit elements */
     #MainMenu {{visibility: hidden;}}
     footer {{visibility: hidden;}}
 </style>
@@ -468,13 +476,13 @@ def render_dashboard():
     with col_a:
         st.subheader("\u211E Low stock \u2014 reorder soon")
         if low:
-            st.table(low)
+            st.dataframe(pd.DataFrame(low), use_container_width=True, hide_index=True)
         else:
             st.info("Nothing is currently low on stock.")
     with col_b:
         st.subheader("\u211E Expiring or expired batches")
         if expiring:
-            st.table(expiring)
+            st.dataframe(pd.DataFrame(expiring), use_container_width=True, hide_index=True)
         else:
             st.info("Nothing expiring in the next 60 days.")
 
@@ -513,7 +521,7 @@ def render_reports():
                 label=f"📥 Download {title} as CSV",
                 data=df.to_csv(index=False).encode('utf-8'),
                 file_name=f"{view_name.lower()}_report.csv",
-                mime="text/csv",
+                mime="text/css",
                 key=f"download_{view_name}"
             )
         else:
