@@ -366,7 +366,7 @@ def render_entity(entity_key):
 
     # Fetch rows first so we can use them for search, filtering, and CSV export
     rows = database.query(conn, ent["list_sql"])
-    
+
     toolbar = st.columns([3] + [1] * len(ent["filters"]) + [1, 1])
     search_val = toolbar[0].text_input(f"Search {ent['label'].lower()}\u2026",
                                         value=st.session_state.search.get(entity_key, ""),
@@ -386,7 +386,7 @@ def render_entity(entity_key):
             st.session_state.form_mode = ("add", entity_key, None, None)
             st.rerun()
 
-    # Download CSV button
+    # Download CSV button for all entities (Customers, Prescriptions, Dispensing Log, Medicines, etc.)
     download_col_idx = len(ent["filters"]) + 2
     if rows:
         df_export = pd.DataFrame(rows)
@@ -410,6 +410,8 @@ def render_entity(entity_key):
 
     st.caption(f"{len(rows)} record{'s' if len(rows) != 1 else ''}")
     render_table(ent, rows, entity_key, can_update, can_delete)
+
+
 # ---------------------------------------------------------------------------
 # Drill-down views (prescription items / purchase items for one parent row)
 # ---------------------------------------------------------------------------
@@ -443,7 +445,16 @@ def render_prescription_items(rx_id):
     if not rows:
         st.info("No items dispensed yet on this prescription.")
     else:
-        st.table(rows)
+        df_rx = pd.DataFrame(rows)
+        st.dataframe(df_rx, use_container_width=True, hide_index=True)
+        csv_data = df_rx.to_csv(index=False).encode('utf-8')
+        st.download_button(
+            label="📥 Download Dispensing Items as CSV",
+            data=csv_data,
+            file_name=f"prescription_{rx_id}_items.csv",
+            mime="text/csv",
+            key=f"download_rx_items_{rx_id}"
+        )
 
 
 def render_purchase_items(po_id):
@@ -475,7 +486,16 @@ def render_purchase_items(po_id):
     if not rows:
         st.info("No items received yet on this order.")
     else:
-        st.table(rows)
+        df_po = pd.DataFrame(rows)
+        st.dataframe(df_po, use_container_width=True, hide_index=True)
+        csv_data = df_po.to_csv(index=False).encode('utf-8')
+        st.download_button(
+            label="📥 Download Purchase Items as CSV",
+            data=csv_data,
+            file_name=f"purchase_order_{po_id}_items.csv",
+            mime="text/csv",
+            key=f"download_po_items_{po_id}"
+        )
 
 
 # ---------------------------------------------------------------------------
