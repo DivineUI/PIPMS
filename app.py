@@ -1,7 +1,7 @@
 """
 app.py
 Pharmacy Inventory & Prescription Management System.
-Enhanced with medical blue/green clinical containers and high-contrast dashboard tables.
+Enhanced with medical blue/green clinical containers, PIN authentication, and stock validation.
 """
 
 import sqlite3
@@ -160,7 +160,7 @@ if not st.session_state.authenticated:
     st.markdown("""
     <div class="main-header" style="max-width: 600px; margin: 4rem auto; text-align: center;">
         <h1>℞ PIPMS — Staff Login</h1>
-        <p style="color: #64748b; margin-top: 0.5رم;">Please select your role and enter the team PIN to access the pharmacy system.</p>
+        <p style="color: #64748b; margin-top: 0.5rem;">Please select your role and enter the team PIN to access the pharmacy system.</p>
     </div>
     """, unsafe_allow_html=True)
     
@@ -205,7 +205,6 @@ with st.sidebar:
     st.caption("Hospital Pharmacy & Prescriptions")
     st.divider()
 
-    # Display current role and logout button instead of raw role dropdown
     st.markdown(f"Signed in as **{st.session_state.role}**")
     if st.button("Log Out", use_container_width=True):
         st.session_state.authenticated = False
@@ -306,6 +305,28 @@ def render_form():
         if missing:
             st.error("Required: " + ", ".join(missing))
             return
+
+        # --- VALIDATION RULES FOR MEDICINES ---
+        if entity_key == "MEDICINE":
+            expiry_val = values.get("ExpiryDate")
+            price_val = values.get("UnitPrice", 0.0)
+
+            if price_val < 0:
+                st.error("Validation Error: Unit price cannot be negative.")
+                return
+
+            if expiry_val:
+                today = date.today()
+                days_until_expiry = (expiry_val - today).days
+                
+                if days_until_expiry <= 0:
+                    st.error("Validation Error: Cannot add or update an expired medicine batch.")
+                    return
+                elif days_until_expiry < 60:
+                    st.error(f"Validation Error: Medicine is too close to expiry ({days_until_expiry} days left). Must have at least 60 days validity.")
+                    return
+        # -------------------------------------
+
         clean = {}
         for f in ent["fields"]:
             v = values[f["key"]]
