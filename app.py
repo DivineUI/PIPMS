@@ -417,9 +417,9 @@ def render_entity(entity_key):
                 database.execute(conn, f"DELETE FROM {entity_key} WHERE {ent['pk']} = ?", (pk,))
                 st.success(f"{singular(ent['label'])} deleted.")
                 st.session_state.confirm_delete = None
+                st.rerun()
             except sqlite3.Error as e:
                 st.error(friendly_sql_error(e, entity_key))
-            st.rerun()
         if cc2.button("Cancel", key=f"cancel_del_{entity_key}_{pk}"):
             st.session_state.confirm_delete = None
             st.rerun()
