@@ -186,9 +186,11 @@ if not st.session_state.authenticated:
 conn: sqlite3.Connection = st.session_state.conn
 
 
-def friendly_sql_error(err: Exception) -> str:
+def friendly_sql_error(err: Exception, entity_key: str = "") -> str:
     msg = str(err)
     if "FOREIGN KEY constraint failed" in msg:
+        if entity_key == "CUSTOMER":
+            return "❌ Cannot delete this customer because they have a prescription on file."
         return "Can't complete this — other records still reference this record."
     if "expired" in msg:
         return "Cannot dispense: this medicine batch has expired"
@@ -348,7 +350,7 @@ def render_form():
             st.session_state.form_mode = None
             st.rerun()
         except sqlite3.Error as e:
-            st.error(friendly_sql_error(e))
+            st.error(friendly_sql_error(e, entity_key))
 
 
 def render_table(ent, rows, entity_key, can_update, can_delete):
@@ -414,9 +416,9 @@ def render_entity(entity_key):
             try:
                 database.execute(conn, f"DELETE FROM {entity_key} WHERE {ent['pk']} = ?", (pk,))
                 st.success(f"{singular(ent['label'])} deleted.")
+                st.session_state.confirm_delete = None
             except sqlite3.Error as e:
-                st.error(friendly_sql_error(e))
-            st.session_state.confirm_delete = None
+                st.error(friendly_sql_error(e, entity_key))
             st.rerun()
         if cc2.button("Cancel", key=f"cancel_del_{entity_key}_{pk}"):
             st.session_state.confirm_delete = None
