@@ -127,15 +127,60 @@ st.markdown(f"""
 </style>
 """, unsafe_allow_html=True)
 
+# -----------------------------------------------------------------------------
+# AUTHENTICATION & SESSION INITIALIZATION
+# -----------------------------------------------------------------------------
+ROLE_PINS = {
+    "Admin": "1234",
+    "Pharmacist": "5678",
+    "Cashier": "4321"
+}
+
+if "authenticated" not in st.session_state:
+    st.session_state.authenticated = False
 if "conn" not in st.session_state:
     st.session_state.conn = database.build_connection()
+if "role" not in st.session_state:
     st.session_state.role = "Admin"
+if "section" not in st.session_state:
     st.session_state.section = "DASHBOARD"
+if "search" not in st.session_state:
     st.session_state.search = {}
+if "active_filters" not in st.session_state:
     st.session_state.active_filters = {}
+if "form_mode" not in st.session_state:
     st.session_state.form_mode = None          
+if "confirm_delete" not in st.session_state:
     st.session_state.confirm_delete = None      
+if "drill" not in st.session_state:
     st.session_state.drill = None               
+
+# Show Login Screen if NOT authenticated
+if not st.session_state.authenticated:
+    st.markdown("""
+    <div class="main-header" style="max-width: 600px; margin: 4rem auto; text-align: center;">
+        <h1>℞ PIPMS — Staff Login</h1>
+        <p style="color: #64748b; margin-top: 0.5رم;">Please select your role and enter the team PIN to access the pharmacy system.</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        with st.form("login_form"):
+            selected_role = st.selectbox("Select Your Role", list(ROLE_PINS.keys()))
+            entered_pin = st.text_input("Enter Role PIN", type="password")
+            submit_btn = st.form_submit_button("Log In", type="primary", use_container_width=True)
+            
+            if submit_btn:
+                if entered_pin == ROLE_PINS[selected_role]:
+                    st.session_state.authenticated = True
+                    st.session_state.role = selected_role
+                    st.success("Login successful!")
+                    st.rerun()
+                else:
+                    st.error("Incorrect PIN for this role. Please try again.")
+                    
+    st.stop()
 
 conn: sqlite3.Connection = st.session_state.conn
 
@@ -160,12 +205,12 @@ with st.sidebar:
     st.caption("Hospital Pharmacy & Prescriptions")
     st.divider()
 
-    role = st.selectbox("Signed in as", ROLES, index=ROLES.index(st.session_state.role))
-    if role != st.session_state.role:
-        st.session_state.role = role
-        if not can_read(role, st.session_state.section):
-            st.session_state.section = "DASHBOARD"
+    # Display current role and logout button instead of raw role dropdown
+    st.markdown(f"Signed in as **{st.session_state.role}**")
+    if st.button("Log Out", use_container_width=True):
+        st.session_state.authenticated = False
         st.session_state.drill = None
+        st.session_state.form_mode = None
         st.rerun()
 
     access_note = "full access" if st.session_state.role == "Admin" else "scoped access"
@@ -521,7 +566,7 @@ def render_reports():
                 label=f"📥 Download {title} as CSV",
                 data=df.to_csv(index=False).encode('utf-8'),
                 file_name=f"{view_name.lower()}_report.csv",
-                mime="text/css",
+                mime="text/csv",
                 key=f"download_{view_name}"
             )
         else:
