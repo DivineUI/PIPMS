@@ -1,7 +1,7 @@
 """
 app.py
 Pharmacy Inventory & Prescription Management System.
-Enhanced with medical blue/green clinical containers, PIN authentication, and stock validation.
+Enhanced with medical blue/green clinical containers, PIN authentication, and strict stock/price validation.
 """
 
 import sqlite3
@@ -128,10 +128,11 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 # -----------------------------------------------------------------------------
-# AUTHENTICATION & SESSION INITIALIZATION
+# AUTHENTICATION & SESSION INITIALIZATION (Includes Manager)
 # -----------------------------------------------------------------------------
 ROLE_PINS = {
     "Admin": "1234",
+    "Manager": "3333",
     "Pharmacist": "5678",
     "Cashier": "4321"
 }
@@ -212,7 +213,7 @@ with st.sidebar:
         st.session_state.form_mode = None
         st.rerun()
 
-    access_note = "full access" if st.session_state.role == "Admin" else "scoped access"
+    access_note = "full access" if st.session_state.role in ["Admin", "Manager"] else "scoped access"
     st.caption(f"**{st.session_state.role}** \u00b7 {access_note}")
     st.divider()
 
@@ -279,12 +280,12 @@ def render_form():
             elif f["type"] == "int":
                 values[key] = st.number_input(f["label"] + (" *" if f.get("required") else ""),
                                                value=int(current) if current not in (None, "") else f.get("min", 0),
-                                               step=int(f.get("step", 1)), min_value=f.get("min"),
+                                               step=int(f.get("step", 1)), min_value=0,
                                                key=f"fld_{entity_key}_{key}_{pk}")
             elif f["type"] == "float":
                 values[key] = st.number_input(f["label"] + (" *" if f.get("required") else ""),
                                                value=float(current) if current not in (None, "") else float(f.get("min", 0.0)),
-                                               step=float(f.get("step", 0.01)), min_value=f.get("min"), format="%.2f",
+                                               step=float(f.get("step", 0.01)), min_value=0.0, format="%.2f",
                                                key=f"fld_{entity_key}_{key}_{pk}")
             else:
                 values[key] = st.text_input(f["label"] + (" *" if f.get("required") else ""),
@@ -306,15 +307,15 @@ def render_form():
             st.error("Required: " + ", ".join(missing))
             return
 
-        # --- VALIDATION RULES FOR MEDICINES ---
+        # --- STRICT VALIDATION RULES ---
+        for key, val in values.items():
+            if ("price" in key.lower() or "cost" in key.lower()) and isinstance(val, (int, float)):
+                if val < 0:
+                    st.error(f"Validation Error: {key} cannot be negative.")
+                    return
+
         if entity_key == "MEDICINE":
             expiry_val = values.get("ExpiryDate")
-            price_val = values.get("UnitPrice", 0.0)
-
-            if price_val < 0:
-                st.error("Validation Error: Unit price cannot be negative.")
-                return
-
             if expiry_val:
                 today = date.today()
                 days_until_expiry = (expiry_val - today).days
@@ -325,7 +326,7 @@ def render_form():
                 elif days_until_expiry < 60:
                     st.error(f"Validation Error: Medicine is too close to expiry ({days_until_expiry} days left). Must have at least 60 days validity.")
                     return
-        # -------------------------------------
+        # -----------------------------
 
         clean = {}
         for f in ent["fields"]:
