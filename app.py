@@ -1,8 +1,3 @@
-"""
-app.py
-Pharmacy Inventory & Prescription Management System.
-"""
-
 import sqlite3
 import base64
 import pandas as pd
@@ -126,6 +121,7 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 # AUTHENTICATION & SESSION INITIALIZATION
+ROLE_PINS = {
     "Admin": "1234",
     "Manager": "3333",
     "Pharmacist": "5678",
