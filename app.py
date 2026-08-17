@@ -1,7 +1,6 @@
 """
 app.py
 Pharmacy Inventory & Prescription Management System.
-Enhanced with medical blue/green clinical containers, PIN authentication, and strict stock/price validation.
 """
 
 import sqlite3
@@ -33,9 +32,8 @@ def get_base64_image(image_path):
 img_base64 = get_base64_image("bg_pharmacy.jpg")
 bg_css = f"url('data:image/jpeg;base64,{img_base64}')" if img_base64 else "linear-gradient(135deg, #f0fdf4 0%, #e0f2fe 100%)"
 
-# -----------------------------------------------------------------------------
-# CLINICAL STYLING (Medical Blue & Soft Mint Green Cards with Dark High-Contrast Text)
-# -----------------------------------------------------------------------------
+# STYLING
+
 st.markdown(f"""
 <style>
     /* Balanced Background Overlay */
@@ -127,10 +125,7 @@ st.markdown(f"""
 </style>
 """, unsafe_allow_html=True)
 
-# -----------------------------------------------------------------------------
-# AUTHENTICATION & SESSION INITIALIZATION (Includes Manager)
-# -----------------------------------------------------------------------------
-ROLE_PINS = {
+# AUTHENTICATION & SESSION INITIALIZATION
     "Admin": "1234",
     "Manager": "3333",
     "Pharmacist": "5678",
@@ -309,7 +304,7 @@ def render_form():
             st.error("Required: " + ", ".join(missing))
             return
 
-        # --- STRICT VALIDATION RULES ---
+        # VALIDATION RULES
         for key, val in values.items():
             if ("price" in key.lower() or "cost" in key.lower()) and isinstance(val, (int, float)):
                 if val < 0:
@@ -328,8 +323,6 @@ def render_form():
                 elif days_until_expiry < 60:
                     st.error(f"Validation Error: Medicine is too close to expiry ({days_until_expiry} days left). Must have at least 60 days validity.")
                     return
-        # -----------------------------
-
         clean = {}
         for f in ent["fields"]:
             v = values[f["key"]]
